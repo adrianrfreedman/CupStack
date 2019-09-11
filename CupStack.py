@@ -6,14 +6,36 @@ decimal.getcontext().prec = 16
 CUP_VOLUME = decimal.Decimal(0.25)
 
 class CupStack:
-    def __init__(self, full=0, capacity=CUP_VOLUME, levels=1):
+    def __init__(self, full=0, capacity=CUP_VOLUME, levels=0):
         super().__init__()
         
         self._full      = decimal.Decimal(full)
         self._capacity  = decimal.Decimal(capacity)
 
-        self._l = self.__init__(full, capacity, levels - 1) if levels > 1 else None
-        self._r = self.__init__(full, capacity, levels - 1) if levels > 1 else None
+        if levels > 0:
+            cups = [
+                [
+                    CupStack(full=full, capacity=capacity)
+                    for j in range(i + 2)
+                ]
+                for i in range(levels)
+            ]
+            
+            # Make each child find it's 2 parents
+            for i in range(levels - 1, 0, -1):
+                for j in range(len(cups[i])):
+                    if j < i + 1: cups[i-1][j  ]._l = cups[i][j]
+                    if j > 0:     cups[i-1][j-1]._r = cups[i][j]
+
+            # Finally, attach the first row
+            self._l, self._r = cups[0]
+
+        else:
+            self._l = None
+            self._r = None
+
+    def __repr__(self):
+        return '.'
 
 
     @property
