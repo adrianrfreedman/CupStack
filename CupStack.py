@@ -79,8 +79,8 @@ class CupStack:
         self._full += decimal.Decimal(amount)
 
         if self.full > self.capacity:
-            overflow = self.full - self.capacity
-            self._full = self.capacity
+            overflow = self._full - self._capacity
+            self._full = self._capacity
 
             if self.l is not None: self.l.fill(overflow / 2)
             if self.r is not None: self.r.fill(overflow / 2)

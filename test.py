@@ -114,5 +114,30 @@ class TestCupStack(unittest.TestCase):
         self.assertEqual(id(c[4, 2]), id(c.r.r.l.l))
         self.assertNotEqual(id(c[4, 2]), id(c.r.r.l.l.l))
 
+    def test_09_overflow(self):
+        c = cs.CupStack(levels=2)
+
+        c.fill(0.25)
+        self.assertEqual(c.full, c.capacity)
+
+        cups = [c, c.l, c.r, c.l.r, c.r.l, c.l.l, c.r.r]
+        for cup in cups[1:]:
+            self.assertEqual(0, cup.full)
+
+        c.fill(0.5)
+        for cup in cups[:2]:
+            self.assertEqual(cup.capacity, cup.full)
+
+        for cup in cups[3:]:
+           self.assertEqual(0, cup.full)
+
+        c.fill(0.5)
+        for cup in cups[:-3]:
+            self.assertEqual(cup.capacity, cup.full)
+
+        for cup in cups[-2:]:
+           self.assertEqual(0.125, cup.full)
+
+
 if __name__ == '__main__':
     unittest.main()
