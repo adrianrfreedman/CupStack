@@ -3,7 +3,7 @@ import unittest
 import CupStack as cs
 
 class TestCupStack(unittest.TestCase):
-    def test_basic_init(self):
+    def test_01_basic_init(self):
         c = cs.CupStack()
 
         self.assertEqual(c._full,       0)
@@ -11,7 +11,7 @@ class TestCupStack(unittest.TestCase):
 
         self.assertIsNone(c._l, c._r)
 
-    def test_getters(self):
+    def test_02_getters(self):
         c = cs.CupStack()
 
         self.assertEqual(c.full,        0)
@@ -19,7 +19,7 @@ class TestCupStack(unittest.TestCase):
 
         self.assertIsNone(c.l, c.r)
 
-    def test_fill(self):
+    def test_03_fill(self):
         c = cs.CupStack()
 
         c.fill(0.1)
@@ -28,7 +28,7 @@ class TestCupStack(unittest.TestCase):
         c.fill(0.2)
         self.assertEqual(c.full, c.capacity)
 
-    def test_fill_with_decimal_precision(self):
+    def test_04_fill_with_decimal_precision(self):
         # In previous test the overflow avoids a well-known issue with floating
         # point precision in Python. I.e. 0.1 + 0.2 == 0.30000000000000004
 
@@ -37,7 +37,7 @@ class TestCupStack(unittest.TestCase):
         c.fill(0.2)
         self.assertEqual(c.full, 0.3)
 
-    def test_multi_level_init(self):
+    def test_05_multi_level_init(self):
         c = cs.CupStack(full=12, capacity=13, levels=4)
 
         stack = [c]
@@ -70,6 +70,49 @@ class TestCupStack(unittest.TestCase):
 
             visited.add(curr)
 
+    def test_06_basic_index(self):
+        c1 = cs.CupStack()
+
+        # Check that a 0, 0 index on a level 0 stack returns the object itself
+        c2 = c1[0, 0]
+        self.assertEqual(id(c1), id(c2))
+
+    def test_07_index_errors(self):
+        c = cs.CupStack()
+
+        self.assertRaises(IndexError, lambda: c[0, 1])
+        self.assertRaises(IndexError, lambda: c[1, 0])
+        self.assertRaises(IndexError, lambda: c[4, 3])
+
+        self.assertRaises(IndexError, lambda: c[-1,  0])
+        self.assertRaises(IndexError, lambda: c[ 0, -1])
+        
+        self.assertRaises(IndexError, lambda: c[[]])
+        self.assertRaises(IndexError, lambda: c[[0]])
+        self.assertRaises(IndexError, lambda: c[0, 1, 2])
+
+    def test_08_index_type_errors(self):
+        c = cs.CupStack()
+
+        self.assertRaises(TypeError, lambda: c[0])
+        self.assertRaises(TypeError, lambda: c['abc'])
+
+
+    def test_08_index_on_stack(self):
+        c = cs.CupStack(levels=1)
+        
+        self.assertEqual(id(c[1, 0]), id(c.l))
+        self.assertEqual(id(c[1, 1]), id(c.r))
+
+        l = 6
+        c = cs.CupStack(levels=l)
+
+        target = c
+        for _ in range(l): target = target.l
+        self.assertEqual(id(c[l, 0]), id(target))
+
+        self.assertEqual(id(c[4, 2]), id(c.r.r.l.l))
+        self.assertNotEqual(id(c[4, 2]), id(c.r.r.l.l.l))
 
 if __name__ == '__main__':
     unittest.main()

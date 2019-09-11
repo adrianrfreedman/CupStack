@@ -34,8 +34,33 @@ class CupStack:
             self._l = None
             self._r = None
 
-    def __repr__(self):
-        return '.'
+    def __getitem__(self, index):
+        if not isinstance(index, (tuple, list)):
+            raise TypeError(
+                f'CupStack indices must be iterables of length 2, not {type(index).__name__}'
+            )
+
+        if len(index) != 2:
+            raise IndexError(f'CupStack indices must be iterables of length 2, not {len(index)}')
+
+        i, j = index
+
+        # The droids we're looking for
+        if i == 0 and j == 0:
+            return self
+
+        # Keep going down the stack
+        elif i > 0:
+
+            # As far to the left as we need to go
+            if j == 0 and self.l is not None:
+                return self.l[i-1, j]
+
+            # Move to the right
+            elif j > 0 and self.r is not None:
+                return self.r[i-1, j-1]
+
+        raise IndexError('CupStack index out of range')
 
 
     @property
