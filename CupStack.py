@@ -5,6 +5,11 @@ decimal.getcontext().prec = 16
 
 CUP_VOLUME = decimal.Decimal(0.25)
 
+
+class CupStackIndexError(Exception):
+    """Index error to distinguish between exceptions raised in CupStack and actual index errors"""
+    pass
+
 class CupStack:
     def __init__(self, full=0, capacity=CUP_VOLUME, levels=0):
         super().__init__()
@@ -41,7 +46,7 @@ class CupStack:
             )
 
         if len(index) != 2:
-            raise IndexError(f'CupStack indices must be iterables of length 2, not {len(index)}')
+            raise CupStackIndexError(f'CupStack indices must be iterables of length 2, not {len(index)}')
 
         i, j = index
 
@@ -60,7 +65,7 @@ class CupStack:
             elif j > 0 and self.r is not None:
                 return self.r[i-1, j-1]
 
-        raise IndexError('CupStack index out of range')
+        raise CupStackIndexError('CupStack index out of range')
 
 
     @property

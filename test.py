@@ -1,6 +1,8 @@
 import unittest
+from unittest import mock
 
 import CupStack as cs
+import exercise
 
 class TestCupStack(unittest.TestCase):
     def test_01_basic_init(self):
@@ -80,16 +82,16 @@ class TestCupStack(unittest.TestCase):
     def test_07_index_errors(self):
         c = cs.CupStack()
 
-        self.assertRaises(IndexError, lambda: c[0, 1])
-        self.assertRaises(IndexError, lambda: c[1, 0])
-        self.assertRaises(IndexError, lambda: c[4, 3])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[0, 1])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[1, 0])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[4, 3])
 
-        self.assertRaises(IndexError, lambda: c[-1,  0])
-        self.assertRaises(IndexError, lambda: c[ 0, -1])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[-1,  0])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[ 0, -1])
         
-        self.assertRaises(IndexError, lambda: c[[]])
-        self.assertRaises(IndexError, lambda: c[[0]])
-        self.assertRaises(IndexError, lambda: c[0, 1, 2])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[[]])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[[0]])
+        self.assertRaises(cs.CupStackIndexError, lambda: c[0, 1, 2])
 
     def test_08_index_type_errors(self):
         c = cs.CupStack()
@@ -98,7 +100,7 @@ class TestCupStack(unittest.TestCase):
         self.assertRaises(TypeError, lambda: c['abc'])
 
 
-    def test_08_index_on_stack(self):
+    def test_09_index_on_stack(self):
         c = cs.CupStack(levels=1)
         
         self.assertEqual(id(c[1, 0]), id(c.l))
@@ -114,29 +116,53 @@ class TestCupStack(unittest.TestCase):
         self.assertEqual(id(c[4, 2]), id(c.r.r.l.l))
         self.assertNotEqual(id(c[4, 2]), id(c.r.r.l.l.l))
 
-    def test_09_overflow(self):
-        c = cs.CupStack(levels=2)
 
-        c.fill(0.25)
-        self.assertEqual(c.full, c.capacity)
+    # Obviously not a unit test but good to see that output is expected
+    def test_10_end_to_end_test(self):
+        c = cs.CupStack(full=0, capacity=0.1, levels=4)
 
-        cups = [c, c.l, c.r, c.l.r, c.r.l, c.l.l, c.r.r]
-        for cup in cups[1:]:
-            self.assertEqual(0, cup.full)
+        c.fill(1)
 
-        c.fill(0.5)
-        for cup in cups[:2]:
-            self.assertEqual(cup.capacity, cup.full)
+        self.assertEqual(c[4, 0].full, 0)
+        self.assertEqual(c[4, 1].full, 0.03125)
+        self.assertEqual(c[4, 2].full, 0.0625)
+        self.assertEqual(c[4, 3].full, 0.03125)
+        self.assertEqual(c[4, 4].full, 0)
 
-        for cup in cups[3:]:
-           self.assertEqual(0, cup.full)
+        c = cs.CupStack(full=0, capacity=0.25, levels=7)
 
-        c.fill(0.5)
-        for cup in cups[:-3]:
-            self.assertEqual(cup.capacity, cup.full)
+        c.fill(7)
 
-        for cup in cups[-2:]:
-           self.assertEqual(0.125, cup.full)
+        self.assertEqual(c[7, 0].full, 0)
+        self.assertEqual(c[7, 1].full, 0)
+        self.assertEqual(c[7, 2].full, 0.16796875)
+        self.assertEqual(c[7, 3].full, 0.25)
+        self.assertEqual(c[7, 4].full, 0.25)
+        self.assertEqual(c[7, 5].full, 0.16796875)
+        self.assertEqual(c[7, 6].full, 0)
+        self.assertEqual(c[7, 7].full, 0)
+
+
+class TestExercise(unittest.TestCase):
+    @mock.patch('exercise.cs.CupStack')
+    @mock.patch('exercise.print')       # suppress output
+    def test_11_correct_args(self, _, cs):
+        exercise.main(3, 2, 1, 0)
+
+        cs.assert_called_with(levels=3)
+        cs.return_value.fill.assert_called_with(2)
+        cs.return_value.__getitem__.assert_called_with((1, 0))
+
+    @mock.patch('exercise.cs.CupStack')
+    @mock.patch('exercise.sys')
+    # @mock.patch('exercise.print')
+    # def test_12_correct_args_with_error(self, _, sys, cs):
+    def test_12_correct_args_with_error(self, sys, mock_cs):
+        mock_cs.return_value.__getitem__.side_effect = cs.CupStackIndexError()
+
+        exercise.main(3, 2, 5, 0)
+
+        sys.exit.assert_called()
 
 
 if __name__ == '__main__':
